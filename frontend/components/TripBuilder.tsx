@@ -31,6 +31,14 @@ const initialState: TripFormValues = {
 export function TripBuilder({ disabled, pending, onSubmit }: Props) {
   const [form, setForm] = useState<TripFormValues>(initialState);
 
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }, []);
+
   const nights = useMemo(
     () => calculateNights(form.startDate, form.endDate),
     [form.startDate, form.endDate],
@@ -38,17 +46,6 @@ export function TripBuilder({ disabled, pending, onSubmit }: Props) {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-
-    // Validate date inputs to prevent selecting past dates
-    if (name === "startDate" || name === "endDate") {
-      const selectedDate = new Date(value);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) {
-        // Prevent selecting past dates for trip planning
-        return;
-      }
-    }
 
     setForm((prev) => ({
       ...prev,
@@ -128,6 +125,7 @@ export function TripBuilder({ disabled, pending, onSubmit }: Props) {
               name="startDate"
               value={form.startDate}
               onChange={handleChange}
+              min={todayStr}
               required
               lang="en"
               className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
@@ -140,6 +138,7 @@ export function TripBuilder({ disabled, pending, onSubmit }: Props) {
               name="endDate"
               value={form.endDate}
               onChange={handleChange}
+              min={form.startDate || todayStr}
               required
               lang="en"
               className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"

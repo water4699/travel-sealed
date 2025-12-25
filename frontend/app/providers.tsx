@@ -10,11 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { InMemoryStorageProvider } from "@/hooks/useInMemoryStorage";
 import "@/lib/suppressWalletConnectWarnings";
-
-// Suppress server-side errors (runs in Node.js during SSR)
-if (typeof process !== "undefined") {
-  require("@/lib/suppressServerErrors");
-}
+import "@/lib/suppressServerErrors";
 
 type Props = {
   children: ReactNode;

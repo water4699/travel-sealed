@@ -207,7 +207,7 @@ export default function Home() {
         setPendingTrip(false);
       }
     },
-    [writeContract, signer, fheInstance, plannerInfo.address, refreshTrips, fhevmStatus, fhevmError],
+    [writeContract, signer, fheInstance, plannerInfo.address, refreshTrips, fhevmStatus, fhevmError, address, chainId],
   );
 
   const handleDecryptTrip = useCallback(
@@ -311,7 +311,7 @@ export default function Home() {
         setPendingTripDecrypt(false);
       }
     },
-    [writeContract, signer, fheInstance, plannerInfo.address, storage, fhevmStatus, fhevmError],
+    [writeContract, signer, fheInstance, plannerInfo.address, storage, fhevmStatus, fhevmError, address, chainId],
   );
 
 

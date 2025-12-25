@@ -33,7 +33,7 @@ export default function DemoPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-500">
-                If the video doesn't load, you can also{" "}
+                If the video doesn&apos;t load, you can also{" "}
                 <a
                   href="/travel.mp4"
                   download="triplock-demo.mp4"
