@@ -9,11 +9,11 @@ import { PlannerHero } from "@/components/PlannerHero";
 import { TripBuilder, TripFormValues } from "@/components/TripBuilder";
 import { TripVault, TripSummary, DecryptedTrip } from "@/components/TripVault";
 import { useFhevm } from "@/fhevm/useFhevm";
-import { useEthersSigner, useReadonlyEthersProvider } from "@/hooks/useEthersAdapters";
+import { useEthersSigner } from "@/hooks/useEthersAdapters";
 import { useInMemoryStorage } from "@/hooks/useInMemoryStorage";
 import { getPlannerContractInfo } from "@/lib/plannerContract";
 import { encryptPayload, decryptPayload, calculateNights } from "@/lib/encryption";
-import { encryptUint32Value, decryptHandles } from "@/lib/fheOperations";
+import { encryptUint32Value } from "@/lib/fheOperations";
 import { FhevmDecryptionSignature } from "@/fhevm/FhevmDecryptionSignature";
 
 const MOCK_CHAINS = { 31337: "http://localhost:8545" } as const;
@@ -21,12 +21,11 @@ const MOCK_CHAINS = { 31337: "http://localhost:8545" } as const;
 export default function Home() {
   const { address, chainId } = useAccount();
   const signer = useEthersSigner();
-  const readonlyProvider = useReadonlyEthersProvider();
   const { storage } = useInMemoryStorage();
 
-  const eip1193Provider = typeof window !== "undefined" ? (window.ethereum as any) : undefined;
+  const eip1193Provider = typeof window !== "undefined" ? (window.ethereum as unknown as ethers.Eip1193Provider) : undefined;
 
-  const { instance: fheInstance, status: fhevmStatus } = useFhevm({
+  const { instance: fheInstance } = useFhevm({
     provider: eip1193Provider,
     chainId,
     initialMockChains: MOCK_CHAINS,
@@ -49,10 +48,12 @@ export default function Home() {
     if (!writeContract || !address) return;
     try {
       const onchain = await writeContract.listMyTrips();
-      setTripSummaries(onchain.map((trip: any, idx: number) => ({
-        id: idx, title: trip.title, style: Number(trip.style),
-        createdAt: new Date(Number(trip.createdAt) * 1000).toLocaleString(),
-      })).reverse());
+      if (Array.isArray(onchain)) {
+        setTripSummaries(onchain.map((trip: { title: string; style: bigint; createdAt: bigint }, idx: number) => ({
+          id: idx, title: trip.title, style: Number(trip.style),
+          createdAt: new Date(Number(trip.createdAt) * 1000).toLocaleString(),
+        })).reverse());
+      }
     } catch (e) { console.error(e); }
   }, [writeContract, address]);
 
@@ -85,11 +86,12 @@ export default function Home() {
         await tx.wait();
         setFeedback("Success! Data secured in your private vault.");
         await refreshData();
-      } catch (error: any) {
-        if (error.message?.includes("0x1817ecd7")) {
+      } catch (error: unknown) {
+        const err = error as Error & { message?: string };
+        if (err.message?.includes("0x1817ecd7")) {
           setFeedback("⚠️ FHE Proof mismatch. Restart Node & Refresh.");
         } else {
-          setFeedback(`Error: ${error.message}`);
+          setFeedback(`Error: ${err.message || "Submission failed"}`);
         }
       } finally {
         setPendingTrip(false);
@@ -106,7 +108,6 @@ export default function Home() {
       try {
         setFeedback("Waiting for MetaMask signature to authorize decryption...");
         
-        // 关键步骤：发送带有 Public Key 的签名请求到 MetaMask
         const signature = await FhevmDecryptionSignature.loadOrSign(
           fheInstance,
           [plannerInfo.address],
@@ -121,7 +122,6 @@ export default function Home() {
         setFeedback("Authorized! Decrypting in secure RAM...");
         
         const encoded = await writeContract.getMyTrip(tripId);
-        // 这里使用从签名中派生的密钥进行解密（或通过 FHE 逻辑）
         const routeData = await decryptPayload(ethers.getBytes(encoded.routeCiphertext));
         const scheduleData = await decryptPayload(ethers.getBytes(encoded.scheduleCiphertext));
         
@@ -132,8 +132,9 @@ export default function Home() {
           createdAt: new Date(Number(encoded.createdAt) * 1000).toLocaleString(),
         });
         setFeedback("Decrypted safely in local RAM.");
-      } catch (error: any) {
-        setFeedback(error.message || "Local decryption failed.");
+      } catch (error: unknown) {
+        const err = error as Error & { message?: string };
+        setFeedback(err.message || "Local decryption failed.");
       } finally {
         setPendingTripDecrypt(false);
       }

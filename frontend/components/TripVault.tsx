@@ -44,7 +44,7 @@ export function TripVault({ trips, decryptedTrip, onDecrypt, pending, disabled }
             Confidential <span className="text-blue-600">Vault</span>
           </h2>
           <p className="mt-3 text-slate-500 leading-relaxed max-w-md">
-            All data below is homomorphically sealed. Decryption happens purely in your browser's secure memory space.
+            All data below is homomorphically sealed. Decryption happens purely in your browser&apos;s secure memory space.
           </p>
         </div>
         <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-3xl border border-slate-100">

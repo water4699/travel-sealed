@@ -38,7 +38,7 @@ export function PlannerHero({ chainName, contractAddress }: Props) {
             </h1>
             
             <p className="text-xl md:text-2xl leading-relaxed text-slate-500 font-medium">
-              The world's first travel protocol powered by <span className="text-slate-900 font-bold underline decoration-blue-500/30 decoration-4 underline-offset-4">Fully Homomorphic Encryption</span>. Store your sacred routes without revealing them to anyone.
+              The world&apos;s first travel protocol powered by <span className="text-slate-900 font-bold underline decoration-blue-500/30 decoration-4 underline-offset-4">Fully Homomorphic Encryption</span>. Store your sacred routes without revealing them to anyone.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
